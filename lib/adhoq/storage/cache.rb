@@ -1,17 +1,17 @@
 module Adhoq
   module Storage
-    class Redis
+    class Cache
       attr_reader :identifier
 
-      def initialize(redis, prefix = "", expire = 300)
-        @redis = redis
+      def initialize(cache, prefix = "", expire = 300)
+        @cache = cache
         @identifier = @prefix = prefix
         @expire = expire
       end
 
       def store(suffix = nil, seed = Time.now, &block)
         Adhoq::Storage.with_new_identifier(suffix, seed) do |identifier|
-          @redis.setex(@prefix + identifier, @expire, yield.read)
+          @cache.write(@prefix + identifier, yield.read, expires_in: @expire)
         end
       end
 
@@ -20,7 +20,7 @@ module Adhoq
       end
 
       def get(identifier)
-        @redis.get(@prefix + identifier)
+        @cache.read(@prefix + identifier)
       end
     end
   end
